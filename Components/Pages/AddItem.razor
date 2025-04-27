@@ -1,0 +1,45 @@
+﻿@page "/add-item"
+@inject ShoppingListService ShoppingListService
+@using Nakupni_Kosik.Components.Models
+@using MudBlazor
+@using Nakupni_Kosik.Services
+
+<MudPaper Class="p-4 mx-auto mt-6" MaxWidth="400px">
+    <MudText Typo="Typo.h5">Přidat položku</MudText>
+
+    <EditForm Model="@item" OnValidSubmit="HandleValidSubmit">
+        <MudTextField Label="Název" @bind-Value="item.Name" Required="true" />
+        <MudNumericField T="int" Label="Množství" @bind-Value="item.Quantity" Required="true" />
+        <MudButton Type="Submit" Color="Color.Primary" Class="mt-2">Přidat</MudButton>
+    </EditForm>
+
+    <MudText Typo="Typo.h6" Class="mt-4">Přidané položky:</MudText>
+
+    <MudList T="ShoppingItem">
+        @foreach (var addedItem in shoppingItems)
+        {
+            <MudListItem T="ShoppingItem">@addedItem.Name - @addedItem.Quantity</MudListItem>
+        }
+    </MudList>
+</MudPaper>
+
+@code {
+    private ShoppingItem item = new();
+    private List<ShoppingItem> shoppingItems = new();
+
+    // Načítání položek při inicializaci
+    protected override async Task OnInitializedAsync()
+    {
+        shoppingItems = (await ShoppingListService.GetItemsAsync()).ToList();
+    }
+
+    // Zpracování odeslání formuláře
+    private async Task HandleValidSubmit()
+    {
+        // Přidání nové položky do databáze
+        await ShoppingListService.AddItemAsync(item);
+
+        // Načítání aktualizovaných položek
+        shoppingItems = (await ShoppingListService.GetItemsAsync()).ToList();
+    }
+}
